@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selling AI, Data and Cloud Solutions with Confidence</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to complement Tailwind */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* A light gray background */
+        }
+
+        /* Custom transition for smooth question changes */
+        .question-transition {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+
+        .question-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            position: absolute;
+            pointer-events: none;
+        }
+        
+        .question-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Custom modal for alerts */
+        #alertModal {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .answer-summary-item {
+            border-left-width: 4px;
+            padding-left: 1rem;
+        }
+        .answer-yes { border-color: #16a34a; } /* green-600 */
+        .answer-no { border-color: #dc2626; } /* red-600 */
+        .answer-unknown { border-color: #9ca3af; } /* gray-400 */
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="container mx-auto max-w-5xl w-full">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-10">
+            
+            <!-- Header Section -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-purple-900">Selling with Confidence</h1>
+                <p class="text-gray-500 mt-2">AI, Data & Cloud Solutions Decision Guide</p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progressBarContainer" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+                <div id="progressBar" class="bg-purple-700 h-2.5 rounded-full transition-width duration-500" style="width: 0%"></div>
+            </div>
+
+            <!-- Question Container -->
+            <div id="questionContainer" class="relative min-h-[12rem] flex items-center justify-center">
+                <!-- Questions will be dynamically inserted here -->
+            </div>
+
+            <!-- Result Section (Initially Hidden) -->
+            <div id="resultSection" class="hidden">
+                <!-- Recommendation Box -->
+                <div class="bg-purple-50 rounded-lg p-6 mb-8 text-center">
+                    <h2 class="text-2xl font-bold text-purple-900 mb-2">Recommendation</h2>
+                    <p id="resultText" class="text-lg text-gray-700"></p>
+                </div>
+
+                <!-- Top Row: Actions and Contacts -->
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <!-- Next Steps -->
+                    <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Next Steps</h3>
+                        <div class="flex flex-col sm:flex-row justify-center gap-4">
+                            <button id="salesGuideBtn" class="w-full sm:w-auto flex-grow bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg hover:bg-purple-800 transition-colors duration-300">
+                                Open Sales Guide
+                            </button>
+                            <button id="restartBtn" class="w-full sm:w-auto flex-grow bg-gray-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors duration-300">
+                                Start Over
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Key Contacts -->
+                    <div id="keyContacts" class="bg-white p-6 rounded-lg shadow-md text-left">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4 text-center">Key Contacts</h3>
+                        <ul class="space-y-3 text-sm text-gray-600">
+                            <li><strong>John Doe</strong> - Sales Manager<br><span class="text-purple-700">john.doe@telus.com | (123) 456-7890</span></li>
+                            <li><strong>Jane Smith</strong> - Technical Specialist<br><span class="text-purple-700">jane.smith@telus.com | (234) 567-8901</span></li>
+                            <li><strong>Mike Johnson</strong> - Account Executive<br><span class="text-purple-700">mike.johnson@telus.com | (345) 678-9012</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Bottom Row: Summaries -->
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Left Column: Chart -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">Response Breakdown</h3>
+                        <div class="h-64">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Right Column: Answers Summary -->
+                    <div id="answersSummaryContainer" class="bg-white p-6 rounded-lg shadow-md text-left">
+                         <h3 class="text-xl font-semibold text-center mb-4 text-gray-700">Your Answers</h3>
+                         <div id="answersSummaryList" class="space-y-4 max-h-64 overflow-y-auto pr-2">
+                             <!-- Answers will be dynamically inserted here -->
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full text-center">
+            <p id="alertModalText" class="mb-4 text-lg">Opening Sales Guide...</p>
+            <button id="alertModalCloseBtn" class="bg-purple-700 text-white font-semibold py-2 px-6 rounded-lg hover:bg-purple-800 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { id: 1, text: "Is the primary goal to overhaul multiple core business processes across the organization?" },
+            { id: 2, text: "Is the customer's primary driver a quick, tangible return on a constrained budget?" },
+            { id: 3, text: "Does the solution need to integrate deeply with several existing large-scale systems (e.g., SAP, Salesforce)?" },
+            { id: 4, text: "Does the customer's team lack the dedicated technical staff for a long-term, hands-on implementation?" },
+            { id: 5, text: "Is the customer trying to solve a unique problem that off-the-shelf software cannot address?" },
+            { id: 6, text: "Does the customer have a mature data governance framework already in place?" },
+            { id: 7, text: "Is the customer looking for a long-term strategic partner rather than just a vendor for a one-off project?" },
+            { id: 8, text: "Is the primary focus on leveraging pre-built AI/ML models for quick wins versus building custom models from scratch?" }
+        ];
+
+        let currentQuestionIndex = 0;
+        const totalQuestions = questions.length;
+        const answers = { yes: 0, no: 0, unknown: 0 };
+        let userAnswers = [];
+        let chartInstance = null;
+
+        const questionContainer = document.getElementById('questionContainer');
+        const resultSection = document.getElementById('resultSection');
+        const resultText = document.getElementById('resultText');
+        const progressBar = document.getElementById('progressBar');
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const answersSummaryList = document.getElementById('answersSummaryList');
+
+        // Modal elements
+        const alertModal = document.getElementById('alertModal');
+        const alertModalText = document.getElementById('alertModalText');
+        const alertModalCloseBtn = document.getElementById('alertModalCloseBtn');
+
+        function renderQuestion() {
+            questionContainer.innerHTML = '';
+            const questionData = questions[currentQuestionIndex];
+            const questionDiv = document.createElement('div');
+            questionDiv.id = `q${questionData.id}`;
+            questionDiv.className = 'question-transition question-visible text-center';
+            questionDiv.innerHTML = `
+                <p class="text-xl md:text-2xl font-semibold text-gray-800 mb-6">${questionData.text}</p>
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <button data-answer="yes" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105">Yes</button>
+                    <button data-answer="no" class="bg-red-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-red-700 transition-transform transform hover:scale-105">No</button>
+                    <button data-answer="unknown" class="bg-gray-400 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-500 transition-transform transform hover:scale-105">I don't know</button>
+                </div>
+            `;
+            questionContainer.appendChild(questionDiv);
+            questionDiv.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => handleAnswer(e.target.dataset.answer));
+            });
+        }
+
+        function handleAnswer(response) {
+            answers[response]++;
+            userAnswers.push({ question: questions[currentQuestionIndex].text, answer: response });
+            
+            const currentQuestionDiv = questionContainer.firstChild;
+            if (currentQuestionDiv) {
+                currentQuestionDiv.classList.remove('question-visible');
+                currentQuestionDiv.classList.add('question-hidden');
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                updateProgressBar();
+                if (currentQuestionIndex < totalQuestions) {
+                    renderQuestion();
+                } else {
+                    showResult();
+                }
+            }, 500); // Wait for fade out transition
+        }
+        
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex) / totalQuestions) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function showResult() {
+            let solution = '';
+            if (answers.yes >= 5) {
+                solution = 'BADAL';
+            } else if (answers.no >= 5) {
+                solution = 'Bitstrapped';
+            } else {
+                solution = 'Fuel-iX';
+            }
+
+            resultText.innerHTML = `Based on your answers, it appears you have a <strong>${solution}</strong> opportunity. <br>If you haven't already, please create your SIT 6 opportunity in SFDC.`;
+            questionContainer.classList.add('hidden');
+            progressBarContainer.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            
+            renderChart();
+            renderAnswersSummary();
+        }
+
+        function renderAnswersSummary() {
+            answersSummaryList.innerHTML = ''; // Clear previous summary
+            userAnswers.forEach(item => {
+                const listItem = document.createElement('div');
+                const answerClass = `answer-${item.answer}`;
+                const formattedAnswer = item.answer.charAt(0).toUpperCase() + item.answer.slice(1);
+                listItem.className = `answer-summary-item ${answerClass}`;
+                listItem.innerHTML = `
+                    <p class="text-gray-700 font-medium">${item.question}</p>
+                    <p class="text-sm font-bold">${formattedAnswer}</p>
+                `;
+                answersSummaryList.appendChild(listItem);
+            });
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Yes', 'No', "I don't know"],
+                    datasets: [{
+                        label: 'Responses',
+                        data: [answers.yes, answers.no, answers.unknown],
+                        backgroundColor: ['#16a34a', '#dc2626', '#9ca3af'],
+                        borderColor: '#ffffff',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+        
+        function showCustomAlert(message) {
+            alertModalText.textContent = message;
+            alertModal.classList.remove('hidden');
+            alertModal.style.opacity = 1;
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            answers.yes = 0;
+            answers.no = 0;
+            answers.unknown = 0;
+            userAnswers = [];
+
+            resultSection.classList.add('hidden');
+            questionContainer.classList.remove('hidden');
+            progressBarContainer.classList.remove('hidden');
+
+            renderQuestion();
+            updateProgressBar();
+        }
+
+        document.getElementById('salesGuideBtn').addEventListener('click', () => {
+             showCustomAlert('This would typically open the official Sales Guide document or redirect to a new page.');
+        });
+        document.getElementById('restartBtn').addEventListener('click', restartQuiz);
+        alertModalCloseBtn.addEventListener('click', () => {
+             alertModal.style.opacity = 0;
+             setTimeout(() => alertModal.classList.add('hidden'), 300);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuestion();
+            updateProgressBar();
+        });
+    </script>
+</body>
+</html>
+
